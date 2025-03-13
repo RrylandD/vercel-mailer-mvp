@@ -1,8 +1,17 @@
 import Head from "next/head";
 import { api } from "~/utils/api";
+import { useState } from "react";
 
 export default function Home() {
-  const { mutate: subscribeEmailMutation } = api.post.subscribeEmail.useMutation();
+  const [error, setError] = useState<string | null>(null);
+  const { mutate: subscribeEmailMutation } = api.post.subscribeEmail.useMutation({
+    onError: (err) => {
+      setError(err.message);
+    },
+    onSuccess: () => {
+      setError(null);
+    },
+  });
   
   const handleSubscribeEmail = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -12,7 +21,7 @@ export default function Home() {
     
     try {
       await subscribeEmailMutation({ email });
-      form.reset(); // Clear the form
+      form.reset();
     } catch (error) {
       console.error("Failed to subscribe:", error);
     }
@@ -28,15 +37,22 @@ export default function Home() {
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
           <h1 className="text-4xl font-bold text-white">Vercel Mailer</h1>
-         <form onSubmit={handleSubscribeEmail} className="flex flex-col gap-4">
-            <input 
-              type="email" 
-              name="email" 
-              className="rounded-lg px-4 py-2 text-black"
-              placeholder="Enter your email"
-              aria-label="Email address"
-              required
-            />
+          <form onSubmit={handleSubscribeEmail} className="flex flex-col gap-4 w-full max-w-md">
+            <div className="flex flex-col gap-2">
+              {error && (
+                <p className="text-red-400 text-sm" role="alert">
+                  {error}
+                </p>
+              )}
+              <input 
+                type="email" 
+                name="email" 
+                className="rounded-lg px-4 py-2 text-black"
+                placeholder="Enter your email"
+                aria-label="Email address"
+                required
+              />
+            </div>
             <button 
               type="submit"
               className="rounded-lg bg-white px-4 py-2 font-semibold text-black hover:bg-opacity-90 transition-colors"
